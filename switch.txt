@@ -1,0 +1,136 @@
+[Cisco switch konfiguráció]
+
+Switch>enable                                # Belépés a privilegizált (EXEC) módba. (en)
+Switch#configure terminal                    # Belépés a globális konfigurációs módba. (conf t)
+Switch(config)#hostname SW1                  # A switch nevét SW1-re állítja.
+Switch(config)#enable secret cisco           # Titkosított enable jelszó beállítása.
+Switch(config)#line console 0                # Konzolos vonal (fizikai hozzáférés) konfigurálása.
+Switch(config-line)#password <password>      # Konzol jelszó beállítása
+Switch(config-line)#login                    # belépéshez kötelezővé teszi.
+Switch(config-line)#logging synchronous      # Megakadályozza, hogy rendszerüzenetek megszakítsák a beírt parancsokat.
+Switch(config)#line vty 0 15                 # A távoli (Telnet/SSH) eléréshez tartozó 0–15 VTY vonalak konfigurálása.
+Switch(config-line)#password <password>      # Távoli eléréshez jelszó
+Switch(config-line)#login                    # és login bekapcsolása.
+Switch(config)#service password-encryption   # Minden egyszerű jelszót alap szintű titkosítással véd.
+Switch(config)#banner motd # Message #       # MOTD (Message of the Day) banner beállítása, belépés előtt látható figyelmeztetés.
+
+[Interfészek konfigurálása]
+
+Switch(config)#interface vlan1                            # A switch menedzsment VLAN interfészének kiválasztása.
+Switch(config-if)#ip address 192.168.100.2 255.255.255.0  # IP-cím a menedzsment interfésznek.
+Switch(config-if)#description MGT                         # Leírás az interfészhez.
+Switch(config-if)#no shutdown                             # Interfész engedélyezése.
+Switch(config-if)#exit                                    # Kilepes.
+Switch(config)#ip default-gateway 192.168.100.1           # Alapértelmezett átjáró beállítása (menedzsment forgalomhoz).
+
+[EtherChannel]
+
+SW1(config)#interface range f0/20-24
+SW1(config-if)#description EtherChannel
+SW1(config-if)#channel-group 1 mode active
+SW1(config-if)#exit
+
+SW2(config)#interface range f0/20-24
+SW2(config-if)#description Link to EtherChannel
+SW2(config-if)#channel-group 1 mode passive
+SW2(config-if)#exit
+
+# – LACP passzív mód; csak válaszol az aktív eszköznek.
+# LACP Active ↔ Passive = működő EtherChannel
+
+[SSH konfiguráció]
+
+Switch(config)#ip domain-name admin                      # Domainnév szükséges az RSA kulcsgeneráláshoz.
+Switch(config)#username <username> password <password>   # Helyi felhasználó létrehozása.
+Switch(config)#crypto key generate rsa                   # RSA kulcspár generálása
+1024                                                     # minimum 1024 bit ajánlott
+Switch(config)#ip ssh version 2                          # SSH v2 protokoll használata (biztonságosabb).
+Switch(config)#line vty 0 15
+Switch(config-line)#login local                          # Lokális userrel való bejelentkezés
+Switch(config-line)#transport input ssh                  # Csak SSH engedélyezett
+
+[VLAN-ok és Port Security]
+
+Switch(config)#vlan 10                                               # VLAN létrehozása
+Switch(config-vlan)#name IT                                          # és elnevezése.
+Switch(config-vlan)#exit
+Switch(config)#vlan 20
+Switch(config-vlan)#name HR
+Switch(config-vlan)#exit
+Switch(config)#interface range f0/1-12                               
+Switch(config-if-range)#switchport mode access                       # Portok VLAN 10-be állítva.
+Switch(config-if-range)#switchport access vlan 10                    # Portok VLAN 10-be állítva.
+Switch(config-if-range)#switchport port-security mac-address sticky  # A switch automatikusan megtanulja az első MAC-címet.
+Switch(config-if-range)#switchport port-security violation shutdown  # Szabályszegés esetén a port letilt.
+Switch(config-if-range)#switchport port-security maximum 1           # Egyetlen MAC-címet enged.
+Switch(config-if-range)#no shutdown
+Switch(config-if-range)#description IT Port
+Switch(config-if-range)#exit
+Switch(config)#interface range f0/13-24
+Switch(config-if-range)#switchport mode access
+Switch(config-if-range)#switchport access vlan 20
+S2(config-if-range)#switchport port-security mac-address sticky
+S2(config-if-range)#switchport port-security violation shutdown
+S2(config-if-range)#switchport port-security maximum 2
+Switch(config-if-range)#no shutdown
+Switch(config-if-range)#description HR Port
+Switch(config-if-range)#exit
+
+[Ellenőrző parancsok]
+
+Switch#show port-security interface f0/2
+Switch#show port-security address
+Switch#show port-security
+
+[Trunk port between router and switch]
+
+Switch(config)#interface g0/1
+Switch(config-if)#switchport mode trunk                    # Trunk mód engedélyezése
+Switch(config-if)#switchport trunk native vlan 1           # Native VLAN beállítása
+Switch(config-if)#switchport trunk allowed vlan 1,10,20    # Megengedett VLAN-ok listája
+Switch(config-if)#no shutdown
+Switch(config-if)#exit
+
+[Portok letiltása]
+
+Switch(config)#interface range f0/11-19
+Switch(config-if-range)#description Tiltott portok
+Switch(config-if-range)#shutdown
+
+[Layer 3 switch konfiguráció (Inter-VLAN routing)]
+
+
+Switch(config)#vlan 10
+Switch(config-vlan)#name IT
+Switch(config-vlan)#exit
+Switch(config)#vlan 20
+Switch(config-vlan)#name HR
+Switch(config-vlan)#exit
+Switch(config)#do sh vlan br	                                # Lehet ellenorizni, hogy rendben van-e
+Switch(config)#interface vlan 10                                # A switch L3 interfészt hoz létre VLAN-hoz
+Switch(config-if)#ip address 192.168.10.1 255.255.255.0
+Switch(config-if)#no shutdown
+Switch(config-if)#exit
+Switch(config)#interface vlan 20                                # A switch L3 interfészt hoz létre VLAN-hoz
+Switch(config-if)#ip address 192.168.20.1 255.255.255.0
+Switch(config-if)#no shutdown
+Switch(config-if)#exit
+Switch(config)#interface range g1/0/1-12
+Switch(config-if-range)#switchport mode access
+Switch(config-if-range)#switchport access vlan 10
+S2(config-if-range)#switchport port-security mac-address sticky
+S2(config-if-range)#switchport port-security violation shutdown
+S2(config-if-range)#switchport port-security maximum 2
+Switch(config-if-range)#no shutdown
+Switch(config-if-range)#description IT Port
+Switch(config-if-range)#exit
+Switch(config)#interface range g1/0/13-24
+Switch(config-if-range)#switchport mode access
+Switch(config-if-range)#switchport access vlan 20
+S2(config-if-range)#switchport port-security mac-address sticky
+S2(config-if-range)#switchport port-security violation shutdown
+S2(config-if-range)#switchport port-security maximum 2
+Switch(config-if-range)#no shutdown
+Switch(config-if-range)#description HR Port
+Switch(config-if-range)#exit
+Switch(config-if)#ip routing	                                 # engedelyezuk a routolast

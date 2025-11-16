@@ -1,0 +1,228 @@
+[ROUTER – Default configurations (alap konfigurációk)]
+
+Router>enable                         # Belépés felhasználói módból privilegizált módba (en)
+Router#configure terminal             # Globális konfigurációs módba lépés (conf t)
+Router(config)#hostname R1            # Az eszköz nevét R1-re állítja
+R1(config)#enable secret cisco        # Titkosított enable jelszó beállítása
+R1(config)#line console 0             # Konzol vonal konfigurálása
+R1(config-line)#password cisco        # Konzol jelszó beállítása
+R1(config-line)#login                 # Konzolos bejelentkezés engedélyezése jelszóval
+R1(config-line)#logging synchronous   # Megszakítások szinkronizálása, tisztább CLI
+
+
+[Aux port:]
+
+R1(config)#line aux 0                 # AUX port konfigurálása
+R1(config-line)#password cisco        # AUX jelszó
+R1(config-line)#login                 # Bejelentkezés engedélyezése
+
+[VTY (távoli Telnet/SSH):]
+
+R1(config)#line vty 0 4               # Távoli hozzáférés portok konfigurálása
+R1(config-line)#password cisco        # VTY jelszó
+R1(config-line)#login                 # Bejelentkezés engedélyezése
+
+[Biztonsági beállítások:]
+
+R1(config)#service password-encryption               # Jelszavak titkosítása (gyenge)
+R1(config)#security passwords min-length 10          # Minimum jelszóhossz
+R1(config)#login block-for 120 attempts 5 within 60  # Brute-force védelem
+R1(config)#banner motd # ... #                       # Üzenet a nap üzenete (figyelmeztetés)
+R1(config)#banner login # ... #                      # Login előtti figyelmeztetés
+
+[Interface configurations – Interfész konfigurációk]
+
+Router(config)#interface g0/0                                # Belépés interfész konfigurációba
+Router(config-if)#description Link to LAN 3                  # Leírás az interfészhez
+Router(config-if)#ip address 192.168.100.1 255.255.255.128   # IP-cím beállítása
+Router(config-if)#no shutdown                                # Interfész bekapcsolása
+
+[Loopback interface]
+
+
+Router(config)#interface loopback 0                          # Loopback interfész létrehozása
+Router(config-if)#ip address 200.0.0.1 255.255.255.255       # Loopback IP
+
+[Subinterface VLAN – Router-on-a-stick]
+
+Router(config)#interface g0/0               # Fizikai interfész
+Router(config-if)#no shutdown               # Bekapcsolás
+Router(config-if)#no ip address             # IP eltávolítása a fizikai interfészről
+
+[Alinterfész VLAN-nal:]
+
+Router(config)#interface g0/0.10                             # Alinterfész VLAN 10-hez
+Router(config-subif)#encapsulation dot1q 10                  # 802.1Q VLAN tag
+Router(config-subif)#ip address 192.168.10.1 255.255.255.240
+Router(config-subif)#description Link to Vlan10 
+
+[SSH configurations – Biztonságos távoli elérés]
+
+Router(config)#ip domain-name admin         # Domainnév SSH kulcshoz
+Router(config)#username admin secret cisco  # Lokális admin felhasználó
+Router(config)#crypto key generate rsa      # RSA kulcspár generálása (HTTPS/SSH)
+1024                                        # Kulcshossz
+Router(config)#ip ssh version 2             # SSH2 használata
+Router(config)#line vty 0 4                 
+Router(config-line)#login local             # Lokális userrel való bejelentkezés
+Router(config-line)#transport input ssh     # Csak SSH engedélyezett
+
+[DHCP Configurations]
+
+Router(config)#ip dhcp excluded-address 192.168.10.1 192.168.10.10    # IP tartomány kizárása DHCP-ből
+Router(config)#ip dhcp pool LAN10                                     # DHCP pool létrehozása
+Router(dhcp-config)#network 192.168.10.0 255.255.255.0                # Hálózat definiálása DHCP-nek
+Router(dhcp-config)#dns-server 192.168.10.3                           # DNS kiszolgáló megadása
+Router(dhcp-config)#default-router 192.168.10.1                       # Alapértelmezett átjáró
+
+[Show parancsok:]
+
+show ip dhcp binding               # Kiosztott IP-k listája
+show ip dhcp pool                  # Pool állapota
+show ip dhcp server statistics     # DHCP szerver statisztikái
+show ip dhcp conflict              # Ütközések listája
+show running-config | section dhcp # DHCP konfig megjelenítése
+show dhcp lease                    # Aktív bérletek
+show ip interface brief            # Rövid interfész státusz
+
+[RIP Configurations]
+
+Router(config)#router rip                                   # RIP protokoll engedélyezése
+Router(config-router)#no auto-summary                       # Automatikus összegzés tiltása
+Router(config-router)#passive-interface g0/0                # Interfész passzív (nem hirdet, de fogad)
+Router(config-router)#no passive-interface s0/0/0           # Aktív interfész
+Router(config-router)#version 2                             # RIP v2
+Router(config-router)#network 10.10.10.0                    # Hálózat bejelentése
+
+[OSPF Configurations]
+
+Router(config)#router ospf 10                                   # OSPF folyamatazonosító 10
+Router(config-router)#router-id 1.1.1.1                         # OSPF Router-ID
+Router(config-router)#area 0 authentication message-digest      # MD5 hitelesítés engedélyezése
+Router(config-router)#auto-cost reference-bandwidth 100000      # Referencia sávszélesség beállítása (itt 100000-re)
+Router(config-router)#default-information originate             # Default route hirdetése
+Router(config-router)#log-adjacency-changes                     # Szomszédság változások logolása
+Router(config-router)#network 10.10.10.0 0.0.0.3 area 0         # Interfészek OSPF-be. Kell egy ip es egy wildcard
+Router(config-router)#network 192.168.10.0 0.0.0.255 area 0	# ugyanaz masik cimmel
+Router(config-router)#no passive-interface s0/0/0               # Aktív interfész
+Router(config-router)#passive-interface g0/0                    # Interfész passzív (nem hirdet, de fogad)
+
+[Interfészszintű MD5:]
+
+Router(config)#interface s0/0/0
+Router(config-if)#ip ospf message-digest-key 10 md5 secretpassword
+
+[OSPF show]
+
+show ip ospf            # Megjeleníti az adott OSPF folyamat globális állapotát. Router-ID, OSPF process ID, Area‐k és státuszuk, SPF (Dijkstra) számítások számlálója, OSPF időzítések, Authentikáció típusa, LSA-k alapinformációi
+show ip ospf interface  # Minden OSPF-ben részt vevő interfész részletes információit jeleníti meg. Interfész szerepe (DR/BDR/DRother), Hello/Dead időzítések, Cost érték, Network type (Broadcast, Point-to-Point stb.), MD5 autentikáció engedélyezve-e, Interfész OSPF area-ja
+show ip ospf neighbor   # Listázza az összes OSPF szomszédot és a velük fennálló állapotot. Szomszéd Router-ID, Állapot: FULL / 2WAY / INIT / DOWN / EXSTART / LOADING, Kapcsolódó interfész, Szomszéd IP, Priority érték (router választáshoz), Dead timer visszaszámlálása
+show ip ospf database   # Megmutatja az OSPF link-state adatbázis (LSDB) teljes tartalmát. Router LSA-k, Network LSA-k, Summary LSA-k, External LSA-k, Minden LSA azonosítójával és korával
+clear ip ospf process   # Újraindítja az OSPF folyamatot megszakítás nélkül, hasonlóan egy "OSPF reboot"-hoz. Törli az LSDB-t, Újraépíti a szomszédsági kapcsolatokat, Új LSA hirdetések indulnak, Új SPF számítás indul
+
+[Static route – Statikus útvonal]
+
+Router(config)#ip route 10.1.0.0 255.255.0.0 10.0.0.2       # Statikus útvonal következő hop-pal
+Router(config)#ip route 192.168.30.0 255.255.255.0 s0/0/0   # Kimenő interfész alapján
+Router(config)#no ip route <ip-address> <subnet-mask>       # Törlés
+
+[Default route]
+
+Router(config)#ip route 0.0.0.0 0.0.0.0 192.168.10.1     # Alapértelmezett átjáró
+
+[ACL – Hozzáférés-vezérlő listák]
+
+[Standard ACL (1–99):]
+
+Router(config)#access-list 1 deny 10.10.10.10 0.0.0.0             # Egy IP tiltása
+Router(config)#access-list 1 permit 10.10.10.0 0.0.0.255          # Hálózat engedése
+
+[Extended ACL (100–199):]
+
+Router(config)#access-list 100 deny tcp 10.10.10.10 0.0.0.0 gt 49151 10.10.50.10 0.0.0.0 eq 23           # TCP tiltás feltételekkel
+Router(config)#access-list 100 permit tcp 10.10.10.0 0.0.0.255 gt 49151 10.10.50.10 0.0.0.0 eq telnet    # Engedés port alapján
+
+[Named ACL]
+
+Router(config)#ip access-list extended randomname       # Nevesített ACL
+Router(config-std-nacl)#deny 10.10.10.10 0.0.0.0
+Router(config-std-nacl)#permit 10.10.10.0 0.0.0.255
+
+[ACL alkalmazása interfészre:]
+
+Router(config)# interface g0/0
+Router(config)#ip access-group 100 out   # Kimenő forgalom
+Router(config)#ip access-group 101 in    # Bejövő forgalom
+
+[ACL show]
+
+R1#show access-list				# Listázza az összes konfigurált ACL-t, beleértve a szabályokat és számlálókat.
+R1#show ip access-lists				# Csak az IP-alapú ACL-eket jeleníti meg.
+R1#show running-config | section access-list	# Kiírja a futó konfigurációból az ACL-ekre vonatkozó beállításokat.
+R1#show access-lists <ACL_NAME/NUMBER>		# Egy adott ACL részleteit jeleníti meg (például 100-as ACL vagy "MY_ACL" nevű ACL).
+R1#show ip interface				# Megmutatja, hogy egy interfészre milyen ACL-ek vannak alkalmazva (inbound/outbound).
+R1#show ip interface <INTERFACE>		# Egy adott interfész ACL beállításait mutatja meg. Pl. show ip int f0/1 | include access list
+R1#show access-lists				# A szabályokhoz tartozó találati (hit) számlálókat is mutatja, így látható, hogy mely szabályok aktívak.
+R1#debug ip packet detail			# Figyeli, hogy milyen csomagokat enged vagy blokkol az ACL (óvatosan használd, mert nagy terhelést okozhat).
+R1#clear access-list counters			# Törli az ACL számlálóit, hogy újrakezdhesd a forgalom figyelését.
+
+[NAT – Címtovábbítás]
+
+R1(config)#interface s0/0/0
+R1(config-if)#ip nat inside
+R1(config-if)#exit
+R1(config)#interface s0/0/1
+R1(config-if)#ip nat outside
+R1(config-if)#exit
+
+[Static NAT]
+
+R1(config)#ip nat inside source static 192.168.10.1 209.21.34.11
+
+[Dynamic NAT]
+
+R1(config)#ip nat pool randomname 203.0.113.4 203.0.113.14 netmask 255.255.255.240   # NAT pool
+R1(config)#access-list 1 permit 10.0.2.0 0.0.0.255                                   # Meghatározás, hogy kik NAT-olhatnak
+R1(config)#ip nat inside source list 1 pool randomname
+
+[PAT (Overload)]
+
+R1(config)# access-list 1 permit 192.168.0.0 0.0.255.255
+R1(config)# ip nat inside source list 1 interface serial 0/1/0 overload
+R1(config)# ip route 0.0.0.0 0.0.0.0 192.168.1.254
+
+[NAT show]
+
+R1#show ip nat statistics		# Megmutatja a NAT statisztikákat, például hány címfordítást végzett a router.
+R1#show ip nat translations		# Listázza az aktuális NAT táblát, amelyben láthatók a belső és külső IP-címek közötti fordítások.
+R1#show ip nat translations verbose	# Részletesebb információt ad a NAT fordításokról, például időzítéseket és portokat.
+R1#show running-config | section nat	# Kiírja a futó konfigurációból az összes NAT-ra vonatkozó beállítást.
+R1#show ip nat interfaces		# Megmutatja, mely interfészek vesznek részt a NAT folyamatban (belső vagy külső interfész).
+R1#show interfaces			# Ellenőrizhető, hogy az interfészek aktívak-e és megfelelő IP-címekkel rendelkeznek-e NAT-hoz.
+R1#debug ip nat				# Részletes NAT naplózást biztosít, megmutatva, hogyan fordítja a router a címeket. (Csak tesztelési célra használd, mert nagy terhelést okozhat!)
+R1#clear ip nat translation *		# Törli az összes NAT fordítást, így friss NAT táblát lehet létrehozni. (Óvatosan használd!)
+
+[TFTP copy]
+
+Router#copy running-config tftp        # Running config mentése TFTP-re
+Router#copy flash tftp		       # Flash tartalom másolása TFTP-re
+
+[IPv6]
+
+
+Router(config)#ipv6 unicast-routing                                 # IPv6 routing engedése
+Router(config)#ipv6 router ospf 100                                 # OSPFv3 folyamatazonosító
+Router(config-rtr)# router-id 11.11.11.11
+Router(config-rtr)# exit
+Router(config)#interface g0/0
+Router(config-if)#ipv6 address 2001:11aa::1/64                      # IPv6 globális cím
+Router(config-if)#ipv6 address fe80::1 link-local                   # Link-local cím kézzel
+Router(config-if)#ipv6 ospf 100 area 0                              # OSPFv3 interfészre
+
+[IPv6 show]
+
+show ipv6 interface brief    # Rövid, áttekinthető listát ad az összes IPv6-képes interfészről. Interfész neve, IPv6 címek (globális + link-local), Interfész állapota (up/down), Line protocol állapota
+show ipv6 route              # Megjeleníti a router teljes IPv6 routing tábláját.OSPFv3 útvonalak (O, OI stb.) Statikus IPv6 útvonalak (S), Lokális IPv6 címek (L), Directly connected hálózatok (C), Default route (::/0), Az útvonalak next-hop címe, Adminisztratív távolság / metrika
+show ipv6 interface          # Részletes információt ad egy megadott IPv6 interfészről (vagy az összesről, ha nincs specifikálva). Globális IPv6 címek, Link-local címek, EUI-64 állapot, ND (Neighbor Discovery) konfiguráció, RA/RS információk, MLD (Multicast Listener Discovery) státusz, MTU, sávszélesség, OSPFv3 állapot (ha aktív)
+show ipv6 ospf interface     # Megjeleníti az OSPFv3 (OSPF for IPv6) beállításait interfész szinten. OSPF process ID, Area ID, Interfész cost, Hello/Dead időzítések, DR/BDR státusz, Authentikáció / Security beállítások, Network type (P2P, Broadcast stb.)
+show ipv6 ospf neighbor      # Listázza az OSPFv3 (OSPF for IPv6) szomszédokat és azok állapotát. Szomszéd Router-ID (IPv4 formátum, de IPv6 OSPF-ben is), Státusz: FULL / 2WAY / EXSTART / LOADING stb., Kapcsolódó interfész, Link-local next-hop cím, Dead timer visszaszámlálás, Priority érték
