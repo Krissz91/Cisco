@@ -1,34 +1,34 @@
 [ROUTER – Default configurations (alap konfigurációk)]
 
-Router>enable                         # Belépés felhasználói módból privilegizált módba (en)
-Router#configure terminal             # Globális konfigurációs módba lépés (conf t)
-Router(config)#hostname R1            # Az eszköz nevét R1-re állítja
-R1(config)#enable secret cisco        # Titkosított enable jelszó beállítása
-R1(config)#line console 0             # Konzol vonal konfigurálása
-R1(config-line)#password cisco        # Konzol jelszó beállítása
-R1(config-line)#login                 # Konzolos bejelentkezés engedélyezése jelszóval
-R1(config-line)#logging synchronous   # Megszakítások szinkronizálása, tisztább CLI
+Router>enable                              # Belépés felhasználói módból privilegizált módba (en)
+Router#configure terminal                  # Globális konfigurációs módba lépés (conf t)
+Router(config)#hostname R1                 # Az eszköz nevét R1-re állítja
+R1(config)#enable secret <password>        # Titkosított enable jelszó beállítása
+R1(config)#line console 0                  # Konzol vonal konfigurálása
+R1(config-line)#password <password>        # Konzol jelszó beállítása
+R1(config-line)#login                      # Konzolos bejelentkezés engedélyezése jelszóval
+R1(config-line)#logging synchronous        # Megszakítások szinkronizálása, tisztább CLI
 
 
 [Aux port:]
 
-R1(config)#line aux 0                 # AUX port konfigurálása
-R1(config-line)#password cisco        # AUX jelszó
-R1(config-line)#login                 # Bejelentkezés engedélyezése
+R1(config)#line aux 0                      # AUX port konfigurálása
+R1(config-line)#password <password>        # AUX jelszó
+R1(config-line)#login                      # Bejelentkezés engedélyezése
 
 [VTY (távoli Telnet/SSH):]
 
-R1(config)#line vty 0 4               # Távoli hozzáférés portok konfigurálása
-R1(config-line)#password cisco        # VTY jelszó
-R1(config-line)#login                 # Bejelentkezés engedélyezése
+R1(config)#line vty 0 4                    # Távoli hozzáférés portok konfigurálása
+R1(config-line)#password <password>        # VTY jelszó
+R1(config-line)#login                      # Bejelentkezés engedélyezése
 
 [Biztonsági beállítások:]
 
-R1(config)#service password-encryption               # Jelszavak titkosítása (gyenge)
-R1(config)#security passwords min-length 10          # Minimum jelszóhossz
-R1(config)#login block-for 120 attempts 5 within 60  # Brute-force védelem
-R1(config)#banner motd # ... #                       # Üzenet a nap üzenete (figyelmeztetés)
-R1(config)#banner login # ... #                      # Login előtti figyelmeztetés
+R1(config)#service password-encryption                   # Jelszavak titkosítása (gyenge)
+R1(config)#security passwords min-length 10              # Minimum jelszóhossz
+R1(config)#login block-for 120 attempts 5 within 60      # Brute-force védelem
+R1(config)#banner motd # message #                       # Üzenet a nap üzenete (figyelmeztetés)
+R1(config)#banner login # message #                      # Login előtti figyelmeztetés
 
 [Interface configurations – Interfész konfigurációk]
 
