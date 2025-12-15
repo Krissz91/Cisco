@@ -58,7 +58,7 @@ Router(config-subif)#description Link to Vlan10
 
 [SSH configurations – Biztonságos távoli elérés]
 
-Router(config)#ip domain-name admin         # Domainnév SSH kulcshoz
+Router(config)#ip domain-name <name>        # Domainnév SSH kulcshoz
 Router(config)#username admin secret cisco  # Lokális admin felhasználó
 Router(config)#crypto key generate rsa      # RSA kulcspár generálása (HTTPS/SSH)
 1024                                        # Kulcshossz
