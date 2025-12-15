@@ -58,14 +58,14 @@ Router(config-subif)#description Link to Vlan10
 
 [SSH configurations – Biztonságos távoli elérés]
 
-Router(config)#ip domain-name <name>        # Domainnév SSH kulcshoz
-Router(config)#username admin secret cisco  # Lokális admin felhasználó
-Router(config)#crypto key generate rsa      # RSA kulcspár generálása (HTTPS/SSH)
-1024                                        # Kulcshossz
-Router(config)#ip ssh version 2             # SSH2 használata
+Router(config)#ip domain-name <name>              # Domainnév SSH kulcshoz
+Router(config)#username <name> secret <password>  # Lokális admin felhasználó
+Router(config)#crypto key generate rsa            # RSA kulcspár generálása (HTTPS/SSH)
+1024                                              # Kulcshossz
+Router(config)#ip ssh version 2                   # SSH2 használata
 Router(config)#line vty 0 4                 
-Router(config-line)#login local             # Lokális userrel való bejelentkezés
-Router(config-line)#transport input ssh     # Csak SSH engedélyezett
+Router(config-line)#login local                   # Lokális userrel való bejelentkezés
+Router(config-line)#transport input ssh           # Csak SSH engedélyezett
 
 [DHCP Configurations]
 
