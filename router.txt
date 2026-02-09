@@ -33,7 +33,7 @@ R1(config)#banner login # message #                      # Login előtti figyelm
 [Interface configurations – Interfész konfigurációk]
 
 Router(config)#interface g0/0                                # Belépés interfész konfigurációba
-Router(config-if)#description Link to LAN 3                  # Leírás az interfészhez
+Router(config-if)#description <description>                  # Leírás az interfészhez. Pl Link to LAN 3
 Router(config-if)#ip address 192.168.100.1 255.255.255.128   # IP-cím beállítása
 Router(config-if)#no shutdown                                # Interfész bekapcsolása
 
@@ -54,11 +54,11 @@ Router(config-if)#no ip address             # IP eltávolítása a fizikai inter
 Router(config)#interface g0/0.10                             # Alinterfész VLAN 10-hez
 Router(config-subif)#encapsulation dot1q 10                  # 802.1Q VLAN tag
 Router(config-subif)#ip address 192.168.10.1 255.255.255.240
-Router(config-subif)#description Link to Vlan10 
+Router(config-subif)#description <description>               # Pl Link to Vlan10 
 
 [SSH configurations – Biztonságos távoli elérés]
 
-Router(config)#ip domain-name <name>              # Domainnév SSH kulcshoz
+Router(config)#ip domain-name <name>              # Domainnév SSH kulcshoz. Pl admin
 Router(config)#username <name> secret <password>  # Lokális admin felhasználó
 Router(config)#crypto key generate rsa            # RSA kulcspár generálása (HTTPS/SSH)
 1024                                              # Kulcshossz
