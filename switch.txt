@@ -18,7 +18,7 @@ Switch(config)#banner motd # Message #       # MOTD (Message of the Day) banner 
 
 Switch(config)#interface vlan1                            # A switch menedzsment VLAN interfészének kiválasztása.
 Switch(config-if)#ip address 192.168.100.2 255.255.255.0  # IP-cím a menedzsment interfésznek.
-Switch(config-if)#description MGT                         # Leírás az interfészhez.
+Switch(config-if)#description <description>               # Leírás az interfészhez. Pl MGT
 Switch(config-if)#no shutdown                             # Interfész engedélyezése.
 Switch(config-if)#exit                                    # Kilepes.
 Switch(config)#ip default-gateway 192.168.100.1           # Alapértelmezett átjáró beállítása (menedzsment forgalomhoz).
@@ -26,12 +26,12 @@ Switch(config)#ip default-gateway 192.168.100.1           # Alapértelmezett át
 [EtherChannel]
 
 SW1(config)#interface range f0/20-24
-SW1(config-if)#description EtherChannel
+SW1(config-if)#description <description>                  # Pl EtherChannel
 SW1(config-if)#channel-group 1 mode active
 SW1(config-if)#exit
 
 SW2(config)#interface range f0/20-24
-SW2(config-if)#description Link to EtherChannel
+SW2(config-if)#description <description>                  # Pl Link to EtherChannel
 SW2(config-if)#channel-group 1 mode passive
 SW2(config-if)#exit
 
