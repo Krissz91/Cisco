@@ -40,7 +40,7 @@ SW2(config-if)#exit
 
 [SSH konfiguráció]
 
-Switch(config)#ip domain-name admin                      # Domainnév szükséges az RSA kulcsgeneráláshoz.
+Switch(config)#ip domain-name <name>                     # Domainnév szükséges az RSA kulcsgeneráláshoz. Pl admin
 Switch(config)#username <username> password <password>   # Helyi felhasználó létrehozása.
 Switch(config)#crypto key generate rsa                   # RSA kulcspár generálása
 1024                                                     # minimum 1024 bit ajánlott
