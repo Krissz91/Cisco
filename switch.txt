@@ -3,7 +3,7 @@
 Switch>enable                                # Belépés a privilegizált (EXEC) módba. (en)
 Switch#configure terminal                    # Belépés a globális konfigurációs módba. (conf t)
 Switch(config)#hostname SW1                  # A switch nevét SW1-re állítja.
-Switch(config)#enable secret cisco           # Titkosított enable jelszó beállítása.
+Switch(config)#enable secret <password>      # Titkosított enable jelszó beállítása.
 Switch(config)#line console 0                # Konzolos vonal (fizikai hozzáférés) konfigurálása.
 Switch(config-line)#password <password>      # Konzol jelszó beállítása
 Switch(config-line)#login                    # belépéshez kötelezővé teszi.
